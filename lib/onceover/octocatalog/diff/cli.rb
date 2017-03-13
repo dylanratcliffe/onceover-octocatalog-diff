@@ -25,13 +25,20 @@ revisions to compare between.
               repo        = Onceover::Controlrepo.new(opts)
               test_config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
               num_threads = (Facter.value('processors')['count'] / 2)
-              #runner.prepare!
               tests = test_config.run_filters(Onceover::Test.deduplicate(test_config.spec_tests))
+
               @queue = tests.inject(Queue.new, :push)
               @results = []
 
               @threads = Array.new(num_threads) do
                 Thread.new do
+                  r10k_cache_dir = Dir.mktmpdir('r10k_cache')
+                  r10k_config = {
+                    'cachedir' => r10k_cache_dir,
+                  }
+                  logger.debug "Creating r10k cache for thread at #{r10k_cache_dir}"
+                  File.write("#{r10k_cache_dir}/r10k.yaml",r10k_config.to_yaml)
+
                   until @queue.empty?
                     test = @queue.shift
 
@@ -47,11 +54,13 @@ revisions to compare between.
                     Onceover::Octocatalog::Diff.create_facts_yaml(repo,"#{tempdir}/spec/factsets")
 
                     logger.info "Deploying Puppetfile for #{test.classes[0].name} on #{test.nodes[0].name}"
-                    r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{repo.puppetfile}"
+                    r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{repo.puppetfile} --config #{r10k_cache_dir}/r10k.yaml"
                     Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
                       exit_status = wait_thr.value
                       if exit_status.exitstatus != 0
-                        throw stderr
+                        STDOUT.puts stdout.read
+                        STDERR.puts stderr.read
+                        abort "R10k encountered an error, see the logs for details"
                       end
                     end
 
@@ -82,6 +91,8 @@ revisions to compare between.
                     logger.info "Storing results for #{test.classes[0].name} on #{test.nodes[0].name}"
                     FileUtils.rm_r(tempdir)
                   end
+
+                  FileUtils.rm_r(r10k_cache_dir)
                 end
               end
 

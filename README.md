@@ -22,7 +22,7 @@ Or install it yourself as:
 
 ## Usage
 
-`onceover run diff`
+`onceover run diff --from development --to production`
 
 All config follows the normal [onceover](https://github.com/dylanratcliffe/onceover) configuration.
 
