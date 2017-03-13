@@ -17,7 +17,6 @@ revisions to compare between.
             option :t,  :to,   'branch to compare to', argument: :required
 
             run do |opts, args, cmd|
-              require 'pry'
               require 'facter'
               require 'colored'
 
@@ -55,7 +54,7 @@ revisions to compare between.
 
                     logger.info "Deploying Puppetfile for #{test.classes[0].name} on #{test.nodes[0].name}"
                     r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{repo.puppetfile} --config #{r10k_cache_dir}/r10k.yaml"
-                    Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
+                    Open3.popen3(r10k_cmd, :chdir => tempdir) do |stdin, stdout, stderr, wait_thr|
                       exit_status = wait_thr.value
                       if exit_status.exitstatus != 0
                         STDOUT.puts stdout.read
