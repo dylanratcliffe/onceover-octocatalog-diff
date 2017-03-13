@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'onceover/controlrepo'
+
+repo = Onceover::Controlrepo.new()
+tempdir = Dir.pwd
+
+FileUtils.copy_entry("<%= tempdir %>/modules","#{tempdir}/modules")
+system("r10k puppetfile install --verbose --color --puppetfile '<%= repo.puppetfile %>'")
+
+
+if repo.config['manifest']
+  manifest_dir = "#{tempdir}/#{repo.config['manifest']}"
+else
+  manifest_dir = "#{tempdir}/manifests"
+end
+
+FileUtils.rm_r(Dir["#{manifest_dir}/*"])
+
+somefile = File.open("#{manifest_dir}/site.pp", "w")
+somefile.puts "include <%= class_name %>"
+somefile.close
