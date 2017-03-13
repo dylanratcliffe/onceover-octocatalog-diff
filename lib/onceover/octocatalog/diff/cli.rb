@@ -49,6 +49,11 @@ revisions to compare between.
                     logger.debug "Copying controlrepo to #{tempdir}"
                     FileUtils.copy_entry(repo.root,tempdir)
 
+                    if File.directory?("#{r10k_cache_dir}/modules")
+                      logger.debug "Copying modules from thread cache to #{tempdir}"
+                      FileUtils.copy_entry("#{r10k_cache_dir}/modules","#{tempdir}/modules")
+                    end
+
                     logger.debug "Converting facts to yaml"
                     Onceover::Octocatalog::Diff.create_facts_yaml(repo,"#{tempdir}/spec/factsets")
 
@@ -88,6 +93,11 @@ revisions to compare between.
                       }
                     end
                     logger.info "Storing results for #{test.classes[0].name} on #{test.nodes[0].name}"
+
+                    logger.debug "Backing up modules to thread cache #{tempdir}"
+                    FileUtils.mv("#{tempdir}/modules","#{r10k_cache_dir}/modules",:force => true)
+
+                    logger.debug "Removing temporary build cache"
                     FileUtils.rm_r(tempdir)
                   end
 
