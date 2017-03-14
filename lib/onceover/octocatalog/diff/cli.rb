@@ -80,9 +80,27 @@ revisions to compare between.
                     binary = `which puppet`.chomp
 
                     logger.debug "Running Octocatalog diff"
-                    logger.debug "Command: octocatalog-diff --fact-file #{tempdir}/spec/factsets/#{test.nodes[0].name}.yaml -f #{opts[:from]} -t #{opts[:to]} --basedir #{tempdir} --puppet-binary #{binary} --bootstrap-script #{tempdir}/bootstrap_script.rb"
                     logger.info "Compiling catalogs for #{test.classes[0].name} on #{test.nodes[0].name}"
-                    cmd = "octocatalog-diff --fact-file #{tempdir}/spec/factsets/#{test.nodes[0].name}.yaml -f #{opts[:from]} -t #{opts[:to]} --basedir #{tempdir} --puppet-binary #{binary} --bootstrap-script '#{tempdir}/bootstrap_script.rb'"
+
+                    command_args = [
+                      '--fact-file',
+                      "#{tempdir}/spec/factsets/#{test.nodes[0].name}.yaml",
+                      '--from',
+                      opts[:from],
+                      '--to',
+                      opts[:to],
+                      '--basedir',
+                      tempdir,
+                      '--puppet-binary',
+                      binary,
+                      '--bootstrap-script',
+                      "'#{tempdir}/bootstrap_script.rb'",
+                      '--hiera-config',
+                      repo.hiera_config_file,
+                    ]
+
+                    cmd = "octocatalog-diff #{command_args.join(' ')}"
+                    logger.debug "Running: #{cmd}"
                     Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
                       exit_status = wait_thr.value
                       @results << {
