@@ -99,6 +99,8 @@ revisions to compare between.
                       "'#{tempdir}/bootstrap_script.rb'",
                       '--hiera-config',
                       repo.hiera_config_file,
+                      '--pass-env-vars',
+                      ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE/ }.join(',')
                     ]
 
                     cmd = "#{command_prefix}octocatalog-diff #{command_args.join(' ')}"
