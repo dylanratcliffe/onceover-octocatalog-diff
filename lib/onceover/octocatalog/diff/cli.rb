@@ -82,6 +82,8 @@ revisions to compare between.
                     logger.debug "Running Octocatalog diff"
                     logger.info "Compiling catalogs for #{test.classes[0].name} on #{test.nodes[0].name}"
 
+                    command_prefix = ENV['BUNDLE_GEMFILE'] ? 'bundle exec ' : ''
+
                     command_args = [
                       '--fact-file',
                       "#{tempdir}/spec/factsets/#{test.nodes[0].name}.yaml",
@@ -99,7 +101,7 @@ revisions to compare between.
                       repo.hiera_config_file,
                     ]
 
-                    cmd = "octocatalog-diff #{command_args.join(' ')}"
+                    cmd = "#{command_prefix}octocatalog-diff #{command_args.join(' ')}"
                     logger.debug "Running: #{cmd}"
                     Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
                       exit_status = wait_thr.value
