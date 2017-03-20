@@ -52,8 +52,12 @@ revisions to compare between.
                     # Copy all of the factsets over in reverse order so that
                     # local ones override vendored ones
                     logger.debug "Deploying vendored factsets"
-                    repo.facts_files.reverse.each do |file|
-                      FileUtils.cp_r(file,"#{tempdir}/spec/factsets/")
+                    written = []
+                    repo.facts_files.each do |file|
+                      FileUtils.cp(file,"#{tempdir}/spec/factsets/") unless written.any? do |name|
+                        name.eql? File.basename(file)
+                      end
+                      written << File.basename(file)
                     end
 
                     if File.directory?("#{r10k_cache_dir}/modules")
