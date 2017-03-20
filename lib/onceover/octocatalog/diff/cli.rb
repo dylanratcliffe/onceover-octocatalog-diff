@@ -49,13 +49,22 @@ revisions to compare between.
                     logger.debug "Copying controlrepo to #{tempdir}"
                     FileUtils.copy_entry(repo.root,tempdir)
 
+                    # Copy all of the factsets over in reverse order so that
+                    # local ones override vendored ones
+                    logger.debug "Deploying vendored factsets"
+                    deduped_factsets = repo.facts_files.reverse.inject({}) do |hash, file|
+                      hash[File.basename(file)] = file
+                      hash
+                    end
+
+                    deduped_factsets.each do |basename,path|
+                      FileUtils.cp(path,"#{tempdir}/spec/factsets/")
+                    end
+
                     if File.directory?("#{r10k_cache_dir}/modules")
                       logger.debug "Copying modules from thread cache to #{tempdir}"
                       FileUtils.copy_entry("#{r10k_cache_dir}/modules","#{tempdir}/modules")
                     end
-
-                    logger.debug "Converting facts to yaml"
-                    Onceover::Octocatalog::Diff.create_facts_yaml(repo,"#{tempdir}/spec/factsets")
 
                     logger.info "Deploying Puppetfile for #{test.classes[0].name} on #{test.nodes[0].name}"
                     r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{repo.puppetfile} --config #{r10k_cache_dir}/r10k.yaml"
@@ -86,7 +95,7 @@ revisions to compare between.
 
                     command_args = [
                       '--fact-file',
-                      "#{tempdir}/spec/factsets/#{test.nodes[0].name}.yaml",
+                      "#{tempdir}/spec/factsets/#{test.nodes[0].name}.json",
                       '--from',
                       opts[:from],
                       '--to',
