@@ -58,7 +58,6 @@ revisions to compare between.
                     end
 
                     deduped_factsets.each do |basename,path|
-                      logger.debug "Writing #{basename}"
                       FileUtils.cp(path,"#{tempdir}/spec/factsets/")
                     end
 
