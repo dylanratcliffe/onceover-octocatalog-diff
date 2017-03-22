@@ -96,7 +96,7 @@ revisions to compare between.
 
                     command_args = [
                       '--fact-file',
-                      "#{tempdir}/spec/factsets/#{test.nodes[0].name}.json",
+                      "#{tempdir}/spec/factsets/#{test.nodes[0].name}.yaml",
                       '--from',
                       opts[:from],
                       '--to',
