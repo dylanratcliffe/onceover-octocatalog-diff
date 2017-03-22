@@ -59,7 +59,7 @@ revisions to compare between.
 
                     deduped_factsets.each do |basename,path|
                       facts = JSON.load(File.read(path))
-                      File.open("#{tempdir}/spec/factsets/#{basename}.yaml", 'w') { |f| f.write facts.to_yaml }
+                      File.open("#{tempdir}/spec/factsets/#{File.basename(facts_file,'.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
                     end
 
                     if File.directory?("#{r10k_cache_dir}/modules")
