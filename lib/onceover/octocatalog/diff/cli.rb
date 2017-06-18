@@ -23,7 +23,8 @@ revisions to compare between.
               #TODO: Allow for custom arguments
               repo        = Onceover::Controlrepo.new(opts)
               test_config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
-              num_threads = (Facter.value('processors')['count'] / 2)
+              processor_count = Facter.value('processors')['count']
+              num_threads = (processor_count == 1) ? 1 : (processor_count / 2)
               tests = test_config.run_filters(Onceover::Test.deduplicate(test_config.spec_tests))
 
               @queue = tests.inject(Queue.new, :push)
