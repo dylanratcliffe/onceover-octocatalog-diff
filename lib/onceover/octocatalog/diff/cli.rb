@@ -93,6 +93,7 @@ revisions to compare between.
                     logger.info "Compiling catalogs for #{test.classes[0].name} on #{test.nodes[0].name}"
 
                     command_prefix = ENV['BUNDLE_GEMFILE'] ? 'bundle exec ' : ''
+                    bootstrap_env = "--bootstrap-environment GEM_HOME=#{ENV['GEM_HOME']}" if ENV['GEM_HOME']
 
                     command_args = [
                       '--fact-file',
@@ -110,7 +111,8 @@ revisions to compare between.
                       '--hiera-config',
                       repo.hiera_config_file,
                       '--pass-env-vars',
-                      ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE/ }.join(',')
+                      ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE/ }.join(','),
+                      bootstrap_env
                     ]
 
                     cmd = "#{command_prefix}octocatalog-diff #{command_args.join(' ')}"
