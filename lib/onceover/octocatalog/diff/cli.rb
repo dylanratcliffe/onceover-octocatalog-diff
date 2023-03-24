@@ -115,7 +115,7 @@ revisions to compare between.
                       bootstrap_env
                     ]
 
-                    cmd = "#{command_prefix}octocatalog-diff #{command_args.join(' ')}"
+                    cmd = "#{command_prefix}octocatalog-diff #{command_args.join(' ')} -n #{test.nodes[0].name}"
                     logger.debug "Running: #{cmd}"
                     Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
                       exit_status = wait_thr.value
