@@ -111,7 +111,7 @@ revisions to compare between.
                       '--hiera-config',
                       repo.hiera_config_file,
                       '--pass-env-vars',
-                      ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE/ }.join(','),
+                      ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE|^PUPPET/ }.join(','),
                       bootstrap_env
                     ]
 
