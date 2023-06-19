@@ -207,12 +207,6 @@ revisions to compare between.
                     end
                     logger.info "Storing results for #{test.classes[0].name} on #{test.nodes[0].name}"
                   end
-
-                  logger.debug "Removing temporary build cache"
-                  FileUtils.rm_r(fromdir)
-                  FileUtils.rm_r(todir)
-                  FileUtils.rm_r(r10k_cache_dir_from)
-                  FileUtils.rm_r(r10k_cache_dir_to)
                 end
               end
 
@@ -227,6 +221,11 @@ revisions to compare between.
                 puts "#{"Errors:".bold}\n#{result[:stderr]}\n" if result[:exit_status] == 1
                 puts ""
               end
+              logger.debug "Removing temporary build cache"
+              FileUtils.rm_r(fromdir)
+              FileUtils.rm_r(todir)
+              FileUtils.rm_r(r10k_cache_dir_from)
+              FileUtils.rm_r(r10k_cache_dir_to)
             end
           end
         end
