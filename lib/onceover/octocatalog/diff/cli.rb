@@ -32,19 +32,25 @@ revisions to compare between.
               @results = []
              
               # Create r10k_cache_dirs
-              r10k_cache_dir_from = Dir.mktmpdir('r10k_cache')
+              logger.debug "Creating a common r10k cache"
+              r10k_cache_dir = Dir.mktmpdir('r10k_cache')
               r10k_config = {
-                'cachedir' => r10k_cache_dir_from,
+                'cachedir' => r10k_cache_dir,
               }
-              logger.debug "Creating r10k cache for thread at #{r10k_cache_dir_from}"
-              File.write("#{r10k_cache_dir_from}/r10k.yaml",r10k_config.to_yaml)
+              File.write("#{r10k_cache_dir}/r10k.yaml",r10k_config.to_yaml)
+              # r10k_cache_dir_from = Dir.mktmpdir('r10k_cache')
+              # r10k_config = {
+              #   'cachedir' => r10k_cache_dir_from,
+              # }
+              # logger.debug "Creating r10k cache for thread at #{r10k_cache_dir_from}"
+              # File.write("#{r10k_cache_dir_from}/r10k.yaml",r10k_config.to_yaml)
 
-              r10k_cache_dir_to = Dir.mktmpdir('r10k_cache')
-              r10k_config = {
-                'cachedir' => r10k_cache_dir_to,
-              }
-              logger.debug "Creating r10k cache for thread at #{r10k_cache_dir_to}"
-              File.write("#{r10k_cache_dir_to}/r10k.yaml",r10k_config.to_yaml)
+              # r10k_cache_dir_to = Dir.mktmpdir('r10k_cache')
+              # r10k_config = {
+              #   'cachedir' => r10k_cache_dir_to,
+              # }
+              # logger.debug "Creating r10k cache for thread at #{r10k_cache_dir_to}"
+              # File.write("#{r10k_cache_dir_to}/r10k.yaml",r10k_config.to_yaml)
               # Create control repo to and from
               fromdir = Dir.mktmpdir("control_repo")
               logger.debug "Temp directory created at #{fromdir}"
@@ -109,7 +115,7 @@ revisions to compare between.
 
               # Deploy Puppetfile in from
               logger.info "Deploying Puppetfile for #{opts[:from]} branch"
-              r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{frompuppetfile} --config #{r10k_cache_dir_from}/r10k.yaml"
+              r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{frompuppetfile} --config #{r10k_cache_dir}/r10k.yaml"
               Open3.popen3(r10k_cmd, :chdir => fromdir) do |stdin, stdout, stderr, wait_thr|
                 exit_status = wait_thr.value
                 if exit_status.exitstatus != 0
@@ -121,7 +127,7 @@ revisions to compare between.
 
               # Deploy Puppetfile in to
               logger.info "Deploying Puppetfile for #{opts[:to]} branch"
-              r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{topuppetfile} --config #{r10k_cache_dir_to}/r10k.yaml"
+              r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{topuppetfile} --config #{r10k_cache_dir}/r10k.yaml"
               Open3.popen3(r10k_cmd, :chdir => todir) do |stdin, stdout, stderr, wait_thr|
                 exit_status = wait_thr.value
                 if exit_status.exitstatus != 0
@@ -233,10 +239,12 @@ revisions to compare between.
               FileUtils.rm_r(todir)
 
               logger.info "Removing temporary build cache"    
-              logger.debug "Processing removal: #{r10k_cache_dir_from}"
-              FileUtils.rm_r(r10k_cache_dir_from)
-              logger.debug "Processing removal: #{r10k_cache_dir_to}"
-              FileUtils.rm_r(r10k_cache_dir_to)
+              logger.debug "Processing removal: #{r10k_cache_dir}"
+              FileUtils.rm_r(r10k_cache_dir)
+              # logger.debug "Processing removal: #{r10k_cache_dir_from}"
+              # FileUtils.rm_r(r10k_cache_dir_from)
+              # logger.debug "Processing removal: #{r10k_cache_dir_to}"
+              # FileUtils.rm_r(r10k_cache_dir_to)
             end
           end
         end
@@ -247,4 +255,3 @@ end
 
 # Register itself
 Onceover::CLI::Run.command.add_command(Onceover::CLI::Run::Diff.command)
-
