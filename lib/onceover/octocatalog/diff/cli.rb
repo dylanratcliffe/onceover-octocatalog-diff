@@ -185,7 +185,7 @@ branch. The `to` branch has the updated resources you wish to test.
                       repo.hiera_config_file,
                       '--pass-env-vars',
                       ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE|^PUPPET/ }.join(','),
-                      bootstrap_env,  
+                      bootstrap_env,
                       display_source,
                       '--enc',
                       "#{todir}/scripts/#{test.nodes[0].name}-#{safe_class}.sh",
