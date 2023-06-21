@@ -10,11 +10,13 @@ class Onceover
             description <<-DESCRIPTION
 This uses octocatalog-diff to run diffs on all things in the test matrix
 instead of actually testing them. Requires two branches, tags or
-revisions to compare between.
+revisions to compare between. The `from` branch could be considered the current
+branch. The `to` branch has the updated resources you wish to test. 
             DESCRIPTION
 
-            option :f,  :from, 'branch to compare from', argument: :required
-            option :t,  :to,   'branch to compare to', argument: :required
+            flag nil, :display_source, 'Display source filename and line number for diffs'
+            option :f,  :from, 'Branch to compare from (e.g. development)', argument: :required
+            option :t,  :to,   'Branch to compare to (e.g main)', argument: :required
 
             run do |opts, args, cmd|
               require 'facter'
@@ -167,6 +169,8 @@ revisions to compare between.
 
                     command_prefix = ENV['BUNDLE_GEMFILE'] ? 'bundle exec ' : ''
                     bootstrap_env = "--bootstrap-environment GEM_HOME=#{ENV['GEM_HOME']}" if ENV['GEM_HOME']
+                    # Whether the output should show the source file and fileline of the update.
+                    display_source = opts[:display_source] ? '--display-source' : '--no-display-source'
 
                     command_args = [
                       '--fact-file',
@@ -182,8 +186,7 @@ revisions to compare between.
                       '--pass-env-vars',
                       ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE|^PUPPET/ }.join(','),
                       bootstrap_env,  
-                      '--display-source',
-                      true,
+                      display_source,
                       '--enc',
                       "#{todir}/scripts/#{test.nodes[0].name}-#{safe_class}.sh",
                       '-n',
@@ -218,7 +221,7 @@ revisions to compare between.
                 puts "#{"Errors:".bold}\n#{result[:stderr]}\n" if result[:exit_status] == 1
                 puts ""
               end
-              
+              logger.info "Cleanup temp environment directories"
               logger.debug "Cleanup temp from directory created at #{fromdir}"
               FileUtils.rm_r(fromdir)
               logger.debug "Cleanup temp to directory created at #{todir}"
