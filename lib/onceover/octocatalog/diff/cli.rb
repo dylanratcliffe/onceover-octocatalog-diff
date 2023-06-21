@@ -39,10 +39,12 @@ revisions to compare between.
               }
               File.write("#{r10k_cache_dir}/r10k.yaml",r10k_config.to_yaml)
               
+              logger.info("Provision temp environment: #{opts[:from]}")
               # Create control repo to and from
               fromdir = Dir.mktmpdir("control_repo")
               logger.debug "Temp directory created at #{fromdir}"
-
+              
+              logger.info("Provision temp environment: #{opts[:to]}")
               todir = Dir.mktmpdir("control_repo")
               logger.debug "Temp directory created at #{todir}"
 
@@ -59,13 +61,14 @@ revisions to compare between.
                 hash[File.basename(file)] = file
                 hash
               end
-
+              logger.info("Copy vendored factsets to control-repos")
               deduped_factsets.each do |basename,path|
                 facts = JSON.load(File.read(path))
-                File.open("#{fromdir}/spec/factsets/#{File.basename(path,'.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
+                # Factsets are only read from todir, see command_args (--fact-file)
+                # File.open("#{fromdir}/spec/factsets/#{File.basename(path,'.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
                 File.open("#{todir}/spec/factsets/#{File.basename(path,'.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
               end
-
+              
               # Set correct branch in bootstrap dirs
               logger.debug "Check out #{opts[:from]} branch"
               git_from = "git checkout #{opts[:from]}"
@@ -124,7 +127,6 @@ revisions to compare between.
                   abort "R10k encountered an error, see the logs for details"
                 end
               end
-##
               @threads = Array.new(num_threads) do
                 Thread.new do
                   until @queue.empty?
@@ -142,7 +144,7 @@ revisions to compare between.
                     # - ENC script: <node_name>-<role_class_name>.sh (e.g. CentOS-8.3.2011-64-role_base.sh)
                     # - The ENC script will only classify a node with a single role_class
                     # - The ENC scripts are generated automatically by the thread.
-                    logger.debug "Create ENC script per node/role_class test in control-repo #{opts[:to]}"
+                    logger.debug "Create ENC script for #{test.classes[0].name} on #{test.nodes[0].name}"
                     class_name = test.classes[0].name
                     control_repos = [fromdir, todir]
                     safe_class = class_name.gsub(/::/, "_")
@@ -201,8 +203,6 @@ revisions to compare between.
                   end
                 end
               end
-
-
               
               @threads.each(&:join)
               logger.info("#{"Test Results:".bold} #{opts[:from].red} vs #{opts[:to].green}")
