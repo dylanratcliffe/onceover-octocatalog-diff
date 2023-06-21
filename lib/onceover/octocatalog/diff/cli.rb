@@ -23,7 +23,7 @@ revisions to compare between.
               #TODO: Allow for custom arguments
               repo        = Onceover::Controlrepo.new(opts)
               test_config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
-              logger.info("#{"Comparing environments".bold} from #{opts[:from].red} to #{opts[:to].green}")
+              logger.info("Compare catalogs between #{opts[:from].red} and #{opts[:to].green} (e.g. what will change if #{opts[:to].green} is deployed to #{opts[:from].red})")
               num_threads = (Facter.value('processors')['count'] / 2)
               logger.debug("Available thread count: #{num_threads}")
               tests = test_config.run_filters(Onceover::Test.deduplicate(test_config.spec_tests))
