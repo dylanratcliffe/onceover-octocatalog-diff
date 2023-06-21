@@ -31,26 +31,14 @@ revisions to compare between.
               @queue = tests.inject(Queue.new, :push)
               @results = []
              
-              # Create r10k_cache_dirs
+              # Create r10k_cache_dir
               logger.debug "Creating a common r10k cache"
               r10k_cache_dir = Dir.mktmpdir('r10k_cache')
               r10k_config = {
                 'cachedir' => r10k_cache_dir,
               }
               File.write("#{r10k_cache_dir}/r10k.yaml",r10k_config.to_yaml)
-              # r10k_cache_dir_from = Dir.mktmpdir('r10k_cache')
-              # r10k_config = {
-              #   'cachedir' => r10k_cache_dir_from,
-              # }
-              # logger.debug "Creating r10k cache for thread at #{r10k_cache_dir_from}"
-              # File.write("#{r10k_cache_dir_from}/r10k.yaml",r10k_config.to_yaml)
-
-              # r10k_cache_dir_to = Dir.mktmpdir('r10k_cache')
-              # r10k_config = {
-              #   'cachedir' => r10k_cache_dir_to,
-              # }
-              # logger.debug "Creating r10k cache for thread at #{r10k_cache_dir_to}"
-              # File.write("#{r10k_cache_dir_to}/r10k.yaml",r10k_config.to_yaml)
+              
               # Create control repo to and from
               fromdir = Dir.mktmpdir("control_repo")
               logger.debug "Temp directory created at #{fromdir}"
@@ -208,12 +196,6 @@ revisions to compare between.
                       }
                     end
                     logger.info "Storing results for #{test.classes[0].name} on #{test.nodes[0].name}"
-                    # cleanup environment to/from 
-                    
-                    # logger.debug "Cleanup temp from directory created at #{fromdir}"
-                    # FileUtils.rm_r(fromdir)
-                    # logger.debug "Cleanup temp to directory created at #{todir}"
-                    # FileUtils.rm_r(todir)
                   end
                 end
               end
@@ -241,10 +223,6 @@ revisions to compare between.
               logger.info "Removing temporary build cache"    
               logger.debug "Processing removal: #{r10k_cache_dir}"
               FileUtils.rm_r(r10k_cache_dir)
-              # logger.debug "Processing removal: #{r10k_cache_dir_from}"
-              # FileUtils.rm_r(r10k_cache_dir_from)
-              # logger.debug "Processing removal: #{r10k_cache_dir_to}"
-              # FileUtils.rm_r(r10k_cache_dir_to)
             end
           end
         end
