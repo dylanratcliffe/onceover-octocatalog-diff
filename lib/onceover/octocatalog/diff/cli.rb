@@ -132,14 +132,23 @@ revisions to compare between.
                     
                     logger.info "Preparing environment for #{test.classes[0].name} on #{test.nodes[0].name}"
 
-                    # TODO: Improve the way this works so that it doesn't blat site.pp
-                    # Update site.pp
+                    # To enable parrallel testing, each role / node pair is allocated a thread.
+                    # To support multiple threads compiling catalogs using the same `to` and `from` environments 
+                    # we must adopt node classification strategy that will not leak between threads. Site.pp is 
+                    # common amongst each thread, using an `include <role_class>` declaration would leak into other 
+                    # threads resulting nodes applying resources from other role classes.
+                    #
+                    # A dedicated ENC script per role/node pair ensures classification freshness without complex logic.
+                    # - ENC script: <node_name>-<role_class_name>.sh (e.g. CentOS-8.3.2011-64-role_base.sh)
+                    # - The ENC script will only classify a node with a single role_class
+                    # - The ENC scripts are generated automatically by the thread.
                     logger.debug "Create ENC script per node/role_class test in control-repo #{opts[:to]}"
-                    # logger.debug "Updating site.pp in #{opts[:from]} & #{opts[:to]} control-repo"
                     class_name = test.classes[0].name
                     control_repos = [fromdir, todir]
                     safe_class = class_name.gsub(/::/, "_")
                     
+                    # Create an ENC script for the current thread's target node and role class
+                    # This ensures this thread will only apply this role class.
                     control_repos.each do | file_name |
                       tempfile = File.open("#{file_name}/scripts/#{test.nodes[0].name}-#{safe_class}.sh", "w")
                       tempfile.puts "echo '---\nclasses:\n  #{class_name}:'"
@@ -147,13 +156,6 @@ revisions to compare between.
                       File.chmod(0744,"#{file_name}/scripts/#{test.nodes[0].name}-#{safe_class}.sh")
                     end
 
-                    # control_repos.each do | file_name |
-                    #   tempfile = File.open("#{file_name}/manifests/site.pp", "w")
-                    #   tempfile.puts "include #{class_name}"
-                    #   tempfile.close
-                    #   sitepp_contents = File.read("#{file_name}/manifests/site.pp")
-                    #   logger.debug "Test class: #{test.classes[0].name}, Site.pp: #{sitepp_contents}"
-                    # end
                     
                     logger.debug "Getting Puppet binary"
                     binary = `which puppet`.chomp
