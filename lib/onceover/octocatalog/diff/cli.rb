@@ -182,6 +182,8 @@ revisions to compare between.
                       '--pass-env-vars',
                       ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE|^PUPPET/ }.join(','),
                       bootstrap_env,  
+                      '--display-source',
+                      true,
                       '--enc',
                       "#{todir}/scripts/#{test.nodes[0].name}-#{safe_class}.sh",
                       '-n',
