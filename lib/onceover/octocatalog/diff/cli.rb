@@ -5,38 +5,28 @@ class Onceover
         def self.command
           @cmd ||= Cri::Command.define do
             name 'diff'
-            usage 'diff'
+            usage 'diff -f <branch> -t <branch>'
             summary "Diff two versions of the controlrepo's compiled catalogs"
-            description <<-DESCRIPTION
-This uses octocatalog-diff to run diffs on catalogs compiled for nodes/roles in the 
-Onceover test matrix instead of actually testing them. Requires two branches, tags or
-revisions to compare between.
+            description <<~DESCRIPTION
+              This uses octocatalog-diff to run diffs on all tests in the test_matrix defined in onceover.yaml.
+              Requires two branches, tags or revisions to compare between.
 
-Identify resource changes if a node applied a catalog compiled using the `to` branch instead of
-`from`. The `from` branch could be considered the current branch.
-The `to` branch has the updated resources you wish to diff.
+              The `from` branch represents the current desired state. The `to` branch contains the updated desired state to be compared.
 
-Example Use Cases:
+              #{'Examples:'.bold}
 
-1. Compare catalog differences in feature_xyz vs `main`
-onceover diff -f main -t feature_xyz
+              1. Compare catalog between `main` and `feature_xyz`:
 
-2. Compare catalog differences in `main` vs long-lived environment `development`
-onceover diff -f development -t main
+              #{'onceover diff -f main -t feature_xyz'.bold}
 
-Report Results: 
+              2. Compare catalog between `development` and `main`:
 
-'-' - catalog resources removed or modified in the `to` branch
-
-'+' - catalog resources created or modified in the `to` branch
+              #{'onceover diff -f development -t main'.bold}
             DESCRIPTION
 
             flag nil, :display_source, 'Display the source class filename and line number for diffs'
             option :f,  :from, 'Branch to compare from', argument: :required
             option :t,  :to,   'Branch to compare to', argument: :required
-
-            #TODO: Add working examples from 'main' to 'feature' (e.g testing changes in feature branch) 
-            #TODO: Add working examples from 'development||production' to 'main' (e.g testing possible promotion of main) 
 
             run do |opts, args, cmd|
               require 'facter'
@@ -52,7 +42,7 @@ Report Results:
 
               @queue = tests.inject(Queue.new, :push)
               @results = []
-             
+
               # Create r10k_cache_dir
               logger.debug "Creating a common r10k cache"
               r10k_cache_dir = Dir.mktmpdir('r10k_cache')
@@ -60,21 +50,21 @@ Report Results:
                 'cachedir' => r10k_cache_dir,
               }
               File.write("#{r10k_cache_dir}/r10k.yaml",r10k_config.to_yaml)
-              
+
               logger.info("Provision temp environment: #{opts[:from]}")
               # Create control repo to and from
-              fromdir = Dir.mktmpdir("control_repo")
+              fromdir = Dir.mktmpdir('control_repo')
               logger.debug "Temp directory created at #{fromdir}"
-              
+
               logger.info("Provision temp environment: #{opts[:to]}")
-              todir = Dir.mktmpdir("control_repo")
+              todir = Dir.mktmpdir('control_repo')
               logger.debug "Temp directory created at #{todir}"
 
               logger.debug "Copying controlrepo to #{fromdir}"
-              FileUtils.copy_entry(repo.root,fromdir)
+              FileUtils.copy_entry(repo.root, fromdir)
 
               logger.debug "Copying controlrepo to #{todir}"
-              FileUtils.copy_entry(repo.root,todir)
+              FileUtils.copy_entry(repo.root, todir)
 
               # Copy all of the factsets over in reverse order so that
               # local ones override vendored ones
