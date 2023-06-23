@@ -8,15 +8,35 @@ class Onceover
             usage 'diff'
             summary "Diff two versions of the controlrepo's compiled catalogs"
             description <<-DESCRIPTION
-This uses octocatalog-diff to run diffs on all things in the test matrix
-instead of actually testing them. Requires two branches, tags or
-revisions to compare between. The `from` branch could be considered the current
-branch. The `to` branch has the updated resources you wish to test. 
+This uses octocatalog-diff to run diffs on catalogs compiled for nodes/roles in the 
+Onceover test matrix instead of actually testing them. Requires two branches, tags or
+revisions to compare between.
+
+Identify resource changes if a node applied a catalog compiled using the `to` branch instead of
+`from`. The `from` branch could be considered the current branch.
+The `to` branch has the updated resources you wish to diff.
+
+Example Use Cases:
+
+1. Compare catalog differences in feature_xyz vs `main`
+onceover diff -f main -t feature_xyz
+
+2. Compare catalog differences in `main` vs long-lived environment `development`
+onceover diff -f development -t main
+
+Report Results: 
+
+'-' - catalog resources removed or modified in the `to` branch
+
+'+' - catalog resources created or modified in the `to` branch
             DESCRIPTION
 
-            flag nil, :display_source, 'Display source filename and line number for diffs'
-            option :f,  :from, 'Branch to compare from (e.g. development)', argument: :required
-            option :t,  :to,   'Branch to compare to (e.g main)', argument: :required
+            flag nil, :display_source, 'Display the source class filename and line number for diffs'
+            option :f,  :from, 'Branch to compare from', argument: :required
+            option :t,  :to,   'Branch to compare to', argument: :required
+
+            #TODO: Add working examples from 'main' to 'feature' (e.g testing changes in feature branch) 
+            #TODO: Add working examples from 'development||production' to 'main' (e.g testing possible promotion of main) 
 
             run do |opts, args, cmd|
               require 'facter'
@@ -25,7 +45,7 @@ branch. The `to` branch has the updated resources you wish to test.
               #TODO: Allow for custom arguments
               repo        = Onceover::Controlrepo.new(opts)
               test_config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
-              logger.info("Compare catalogs between #{opts[:from].red} and #{opts[:to].green} (e.g. what will change if #{opts[:to].green} is deployed to #{opts[:from].red})")
+              logger.info("Compare catalogs between #{opts[:from].red} and #{opts[:to].green}\n (e.g. what will change if #{opts[:to].green} is deployed to #{opts[:from].red})")
               num_threads = (Facter.value('processors')['count'] / 2)
               logger.debug("Available thread count: #{num_threads}")
               tests = test_config.run_filters(Onceover::Test.deduplicate(test_config.spec_tests))
