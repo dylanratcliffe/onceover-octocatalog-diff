@@ -32,7 +32,7 @@ class Onceover
               require 'facter'
               require 'colored'
 
-              #TODO: Allow for custom arguments
+              # TODO: Allow for custom arguments
               repo        = Onceover::Controlrepo.new(opts)
               test_config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
               logger.info("Compare catalogs between #{opts[:from].red} and #{opts[:to].green}")
@@ -49,7 +49,7 @@ class Onceover
               r10k_config = {
                 'cachedir' => r10k_cache_dir,
               }
-              File.write("#{r10k_cache_dir}/r10k.yaml",r10k_config.to_yaml)
+              File.write("#{r10k_cache_dir}/r10k.yaml", r10k_config.to_yaml)
 
               logger.info("Provision temp environment: #{opts[:from]}")
               # Create control repo to and from
@@ -74,13 +74,13 @@ class Onceover
                 hash
               end
               logger.info('Copy vendored factsets to control-repos')
-              deduped_factsets.each do |basename,path|
+              deduped_factsets.each do |basename, path|
                 facts = JSON.load(File.read(path))
                 # Factsets are only read from todir, see command_args (--fact-file)
                 # File.open("#{fromdir}/spec/factsets/#{File.basename(path,'.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
-                File.open("#{todir}/spec/factsets/#{File.basename(path,'.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
+                File.open("#{todir}/spec/factsets/#{File.basename(path, '.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
               end
-              
+
               # Set correct branch in bootstrap dirs
               logger.debug "Check out #{opts[:from]} branch"
               git_from = "git checkout #{opts[:from]}"
@@ -104,17 +104,17 @@ class Onceover
               end
 
               # Update Puppetfile for control-branch
-              # r10k seems to have issues resolving the :control_branch reference in Puppetfile. Setting control_branch to actual branch as workaround.
+              # r10k seems to have issues resolving the :control_branch reference in Puppetfile.
+              # Setting control_branch to actual branch as workaround.
               frompuppetfile = "#{fromdir}/Puppetfile"
               from_content = File.read(frompuppetfile)
               new_content = from_content.gsub(/:control_branch/, "'#{opts[:from]}'")
-              File.open(frompuppetfile, 'w') {|file| file.puts new_content }
- 
+              File.open(frompuppetfile, 'w') { |file| file.puts new_content }
+
               topuppetfile = "#{todir}/Puppetfile"
               to_content = File.read(topuppetfile)
               new_content = to_content.gsub(/:control_branch/, "'#{opts[:to]}'")
-              File.open(topuppetfile, 'w') {|file| file.puts new_content }
-
+              File.open(topuppetfile, 'w') { |file| file.puts new_content }
 
               # Deploy Puppetfile in from
               logger.info "Deploying Puppetfile for #{opts[:from]} branch"
@@ -136,7 +136,7 @@ class Onceover
                 if exit_status.exitstatus != 0
                   STDOUT.puts stdout.read
                   STDERR.puts stderr.read
-                  abort "R10k encountered an error, see the logs for details"
+                  abort 'R10k encountered an error, see the logs for details'
                 end
               end
               @threads = Array.new(num_threads) do
@@ -159,7 +159,7 @@ class Onceover
                     logger.debug "Create ENC script for #{test.classes[0].name} on #{test.nodes[0].name}"
                     class_name = test.classes[0].name
                     control_repos = [fromdir, todir]
-                    safe_class = class_name.gsub(/::/, "_")
+                    safe_class = class_name.gsub(/::/, '_')
 
                     # Create an ENC script for the current thread's target node and role class
                     # This ensures this thread will only apply this role class.
@@ -167,9 +167,8 @@ class Onceover
                       tempfile = File.open("#{file_name}/scripts/#{test.nodes[0].name}-#{safe_class}.sh", 'w')
                       tempfile.puts "echo '---\nclasses:\n  #{class_name}:'"
                       tempfile.close
-                      File.chmod(0744,"#{file_name}/scripts/#{test.nodes[0].name}-#{safe_class}.sh")
+                      File.chmod(0744, "#{file_name}/scripts/#{test.nodes[0].name}-#{safe_class}.sh")
                     end
-
 
                     logger.debug 'Getting Puppet binary'
                     binary = `which puppet`.chomp
@@ -194,7 +193,7 @@ class Onceover
                       '--hiera-config',
                       repo.hiera_config_file,
                       '--pass-env-vars',
-                      ENV.keys.keep_if {|k| k =~ /^RUBY|^BUNDLE|^PUPPET/ }.join(','),
+                      ENV.keys.keep_if { |k| k =~ /^RUBY|^BUNDLE|^PUPPET/ }.join(','),
                       bootstrap_env,
                       display_source,
                       '--enc',
@@ -218,21 +217,21 @@ class Onceover
                   end
                 end
               end
-              
+
               @threads.each(&:join)
               logger.info("#{'Test Results:'.bold} #{"#{opts[:from]} (-)".red} vs #{"#{opts[:to]} (+)".green}")
               logger.debug("Results Explained:")
               logger.debug("#{'(+)'.green} resource added or modified in `to`")
               logger.debug("#{'(-)'.red} resource removed or previous content in `from`")
               @results.each do |result|
-                puts "#{"Test:".bold} #{result[:test].classes[0].name} on #{result[:test].nodes[0].name}"
-                puts "#{"Exit:".bold} #{result[:exit_status]}"
-                puts "#{"Status:".bold} #{"changes".yellow}" if result[:exit_status] == 2
-                puts "#{"Status:".bold} #{"no differences".green}" if result[:exit_status] == 0
-                puts "#{"Status:".bold} #{"failed".red}" if result[:exit_status] == 1
-                puts "#{"Results:".bold}\n#{result[:stdout]}\n" if result[:exit_status] == 2
-                puts "#{"Errors:".bold}\n#{result[:stderr]}\n" if result[:exit_status] == 1
-                puts ""
+                puts "#{'Test:'.bold} #{result[:test].classes[0].name} on #{result[:test].nodes[0].name}"
+                puts "#{'Exit:'.bold} #{result[:exit_status]}"
+                puts "#{'Status:'.bold} #{'changes'.yellow}" if result[:exit_status] == 2
+                puts "#{'Status:'.bold} #{'no differences'.green}" if result[:exit_status] == 0
+                puts "#{'Status:'.bold} #{'failed'.red}" if result[:exit_status] == 1
+                puts "#{'Results:'.bold}\n#{result[:stdout]}\n" if result[:exit_status] == 2
+                puts "#{'Errors:'.bold}\n#{result[:stderr]}\n" if result[:exit_status] == 1
+                puts ''
               end
               logger.info 'Cleanup temp environment directories'
               logger.debug "Cleanup temp from directory created at #{fromdir}"
