@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Onceover
   class CLI
     class Run
@@ -43,29 +45,129 @@ class Onceover
               @queue = tests.inject(Queue.new, :push)
               @results = []
 
+
+              logger.info('Provision common temp environment')
+              # Create control repo to and from
+              environment_dir = Dir.mktmpdir('octo-diff-temp')
+              r10k_cache_dir = Dir.mktmpdir('r10k_cache_dir')
+              logger.debug "Temp directory created at #{environment_dir}"
+              logger.debug "Temp directory created at #{r10k_cache_dir}"
+              
+
+              # From dir no longer needed
+              #logger.info("Provision temp environment: #{opts[:from]}")
+              # Create control repo to and from
+              fromdir = "#{environment_dir}/#{opts[:from]}"
+              #logger.debug "Temp directory created at #{fromdir}"
+
+              # To dir no longer needed
+              # logger.info("Provision temp environment: #{opts[:to]}")
+              todir = "#{environment_dir}/#{opts[:to]}"
+              # todir = Dir.mktmpdir('control_repo')
+              # logger.debug "Temp directory created at #{todir}"
+
+              # Copy no longer needed
+              # logger.debug "Copying controlrepo to #{fromdir}"
+              # FileUtils.copy_entry(repo.root, fromdir)
+              # logger.debug "Copying controlrepo to #{todir}"
+              # FileUtils.copy_entry(repo.root, todir)
+
               # Create r10k_cache_dir
               logger.debug 'Creating a common r10k cache'
+              # Cache dir no longer needed
               r10k_cache_dir = Dir.mktmpdir('r10k_cache')
               r10k_config = {
-                'cachedir' => r10k_cache_dir,
+                # 'cachedir' => r10k_cache_dir,
+                'cachedir' => environment_dir,
+                'sources' => {
+                  'default' => {
+                    'remote' => repo.root,
+                    'basedir' => environment_dir
+                  },
+                }
               }
               File.write("#{r10k_cache_dir}/r10k.yaml", r10k_config.to_yaml)
 
-              logger.info("Provision temp environment: #{opts[:from]}")
-              # Create control repo to and from
-              fromdir = Dir.mktmpdir('control_repo')
-              logger.debug "Temp directory created at #{fromdir}"
+              
 
-              logger.info("Provision temp environment: #{opts[:to]}")
-              todir = Dir.mktmpdir('control_repo')
-              logger.debug "Temp directory created at #{todir}"
+              # # Copy all of the factsets over in reverse order so that
+              # # local ones override vendored ones
+              # logger.debug 'Deploying vendored factsets'
+              # deduped_factsets = repo.facts_files.reverse.inject({}) do |hash, file|
+              #   hash[File.basename(file)] = file
+              #   hash
+              # end
+              # logger.info('Copy vendored factsets to control-repos')
+              # deduped_factsets.each do |basename, path|
+              #   facts = JSON.load(File.read(path))
+              #   # Factsets are only read from todir, see command_args (--fact-file)
+              #   # File.open("#{fromdir}/spec/factsets/#{File.basename(path,'.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
+              #   File.open("#{todir}/spec/factsets/#{File.basename(path, '.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
+              # end
 
-              logger.debug "Copying controlrepo to #{fromdir}"
-              FileUtils.copy_entry(repo.root, fromdir)
+              # Set correct branch in bootstrap dirs
+              # Not needed, pulled during r10k deploy
+              # logger.debug "Check out #{opts[:from]} branch"
+              # git_from = "git checkout #{opts[:from]}"
+              # Open3.popen3(git_from, :chdir => fromdir) do |stdin, stdout, stderr, wait_thr|
+              #   exit_status = wait_thr.value
+              #   if exit_status.exitstatus != 0
+              #     STDOUT.puts stdout.read
+              #     STDERR.puts stderr.read
+              #     abort "Git checkout branch #{opts[:from]} failed. Please verify this is a valid control-repo branch"
+              #   end
+              # end
+              # logger.debug "Check out #{opts[:to]} branch"
+              # git_to = "git checkout #{opts[:to]}"
+              # Open3.popen3(git_to, :chdir => todir) do |stdin, stdout, stderr, wait_thr|
+              #   exit_status = wait_thr.value
+              #   if exit_status.exitstatus != 0
+              #     STDOUT.puts stdout.read
+              #     STDERR.puts stderr.read
+              #     abort "Git checkout branch #{opts[:to]} failed. Please verify this is a valid control-repo branch"
+              #   end
+              # end
 
-              logger.debug "Copying controlrepo to #{todir}"
-              FileUtils.copy_entry(repo.root, todir)
+              # Update Puppetfile for control-branch
+              # r10k seems to have issues resolving the :control_branch reference in Puppetfile.
+              # Setting control_branch to actual branch as workaround.
+              #frompuppetfile = "#{fromdir}/Puppetfile"
+              #from_content = File.read(frompuppetfile)
+              #new_content = from_content.gsub(/:control_branch/, "'#{opts[:from]}'")
+              #File.open(frompuppetfile, 'w') { |file| file.puts new_content }
 
+              #topuppetfile = "#{todir}/Puppetfile"
+              #to_content = File.read(topuppetfile)
+              #new_content = to_content.gsub(/:control_branch/, "'#{opts[:to]}'")
+              #File.open(topuppetfile, 'w') { |file| file.puts new_content }
+
+              # Deploy Puppetfile in from
+              logger.info "Deploying Puppetfile for #{opts[:from]} branch"
+              r10k_cmd = "r10k deploy environment #{opts[:from]} --modules --config #{r10k_cache_dir}/r10k.yaml"
+              Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
+              # Open3.popen3(r10k_cmd, :chdir => fromdir) do |stdin, stdout, stderr, wait_thr|
+                exit_status = wait_thr.value
+                if exit_status.exitstatus != 0
+                  STDOUT.puts stdout.read
+                  STDERR.puts stderr.read
+                  abort 'R10k encountered an error, see the logs for details'
+                end
+              end
+
+              # Deploy Puppetfile in to
+              logger.info "Deploying Puppetfile for #{opts[:to]} branch"
+              r10k_cmd = "r10k deploy environment #{opts[:to]} --modules --config #{r10k_cache_dir}/r10k.yaml"
+              Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
+              # Open3.popen3(r10k_cmd, :chdir => todir) do |stdin, stdout, stderr, wait_thr|
+                exit_status = wait_thr.value
+                if exit_status.exitstatus != 0
+                  STDOUT.puts stdout.read
+                  STDERR.puts stderr.read
+                  abort 'R10k encountered an error, see the logs for details'
+                end
+              end
+
+              # Move beneath deploy of environments
               # Copy all of the factsets over in reverse order so that
               # local ones override vendored ones
               logger.debug 'Deploying vendored factsets'
@@ -81,64 +183,7 @@ class Onceover
                 File.open("#{todir}/spec/factsets/#{File.basename(path, '.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
               end
 
-              # Set correct branch in bootstrap dirs
-              logger.debug "Check out #{opts[:from]} branch"
-              git_from = "git checkout #{opts[:from]}"
-              Open3.popen3(git_from, :chdir => fromdir) do |stdin, stdout, stderr, wait_thr|
-                exit_status = wait_thr.value
-                if exit_status.exitstatus != 0
-                  STDOUT.puts stdout.read
-                  STDERR.puts stderr.read
-                  abort "Git checkout branch #{opts[:from]} failed. Please verify this is a valid control-repo branch"
-                end
-              end
-              logger.debug "Check out #{opts[:to]} branch"
-              git_to = "git checkout #{opts[:to]}"
-              Open3.popen3(git_to, :chdir => todir) do |stdin, stdout, stderr, wait_thr|
-                exit_status = wait_thr.value
-                if exit_status.exitstatus != 0
-                  STDOUT.puts stdout.read
-                  STDERR.puts stderr.read
-                  abort "Git checkout branch #{opts[:to]} failed. Please verify this is a valid control-repo branch"
-                end
-              end
 
-              # Update Puppetfile for control-branch
-              # r10k seems to have issues resolving the :control_branch reference in Puppetfile.
-              # Setting control_branch to actual branch as workaround.
-              frompuppetfile = "#{fromdir}/Puppetfile"
-              from_content = File.read(frompuppetfile)
-              new_content = from_content.gsub(/:control_branch/, "'#{opts[:from]}'")
-              File.open(frompuppetfile, 'w') { |file| file.puts new_content }
-
-              topuppetfile = "#{todir}/Puppetfile"
-              to_content = File.read(topuppetfile)
-              new_content = to_content.gsub(/:control_branch/, "'#{opts[:to]}'")
-              File.open(topuppetfile, 'w') { |file| file.puts new_content }
-
-              # Deploy Puppetfile in from
-              logger.info "Deploying Puppetfile for #{opts[:from]} branch"
-              r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{frompuppetfile} --config #{r10k_cache_dir}/r10k.yaml"
-              Open3.popen3(r10k_cmd, :chdir => fromdir) do |stdin, stdout, stderr, wait_thr|
-                exit_status = wait_thr.value
-                if exit_status.exitstatus != 0
-                  STDOUT.puts stdout.read
-                  STDERR.puts stderr.read
-                  abort 'R10k encountered an error, see the logs for details'
-                end
-              end
-
-              # Deploy Puppetfile in to
-              logger.info "Deploying Puppetfile for #{opts[:to]} branch"
-              r10k_cmd = "r10k puppetfile install --verbose --color --puppetfile #{topuppetfile} --config #{r10k_cache_dir}/r10k.yaml"
-              Open3.popen3(r10k_cmd, :chdir => todir) do |stdin, stdout, stderr, wait_thr|
-                exit_status = wait_thr.value
-                if exit_status.exitstatus != 0
-                  STDOUT.puts stdout.read
-                  STDERR.puts stderr.read
-                  abort 'R10k encountered an error, see the logs for details'
-                end
-              end
               @threads = Array.new(num_threads) do
                 Thread.new do
                   until @queue.empty?
@@ -240,8 +285,10 @@ class Onceover
               FileUtils.rm_r(todir)
 
               logger.info 'Removing temporary build cache'
-              logger.debug "Processing removal: #{r10k_cache_dir}"
+              #logger.debug "Processing removal: #{r10k_cache_dir}"
+              logger.debug "Processing removal: #{environment_dir}"
               FileUtils.rm_r(r10k_cache_dir)
+              FileUtils.rm_r(environment_dir)
             end
           end
         end
