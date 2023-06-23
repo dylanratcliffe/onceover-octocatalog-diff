@@ -35,7 +35,7 @@ class Onceover
               #TODO: Allow for custom arguments
               repo        = Onceover::Controlrepo.new(opts)
               test_config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
-              logger.info("Compare catalogs between #{opts[:from].red} and #{opts[:to].green}\n (e.g. what will change if #{opts[:to].green} is deployed to #{opts[:from].red})")
+              logger.info("Compare catalogs between #{opts[:from].red} and #{opts[:to].green}")
               num_threads = (Facter.value('processors')['count'] / 2)
               logger.debug("Available thread count: #{num_threads}")
               tests = test_config.run_filters(Onceover::Test.deduplicate(test_config.spec_tests))
@@ -144,7 +144,7 @@ class Onceover
                   until @queue.empty?
                     test = @queue.shift
 
-                    logger.info "Preparing environment for #{test.classes[0].name} on #{test.nodes[0].name}"
+                    logger.debug "Preparing environment for #{test.classes[0].name} on #{test.nodes[0].name}"
 
                     # To enable parrallel testing, each role / node pair is allocated a thread.
                     # To support multiple threads compiling catalogs using the same `to` and `from` environments
@@ -214,13 +214,16 @@ class Onceover
                         test: test
                       }
                     end
-                    logger.info "Storing results for #{test.classes[0].name} on #{test.nodes[0].name}"
+                    logger.debug "Storing results for #{test.classes[0].name} on #{test.nodes[0].name}"
                   end
                 end
               end
               
               @threads.each(&:join)
-              logger.info("#{"Test Results:".bold} #{opts[:from].red} vs #{opts[:to].green}")
+              logger.info("#{'Test Results:'.bold} #{"#{opts[:from]} (-)".red} vs #{"#{opts[:to]} (+)".green}")
+              logger.debug("Results Explained:")
+              logger.debug("#{'(+)'.green} resource added or modified in `to`")
+              logger.debug("#{'(-)'.red} resource removed or previous content in `from`")
               @results.each do |result|
                 puts "#{"Test:".bold} #{result[:test].classes[0].name} on #{result[:test].nodes[0].name}"
                 puts "#{"Exit:".bold} #{result[:exit_status]}"
