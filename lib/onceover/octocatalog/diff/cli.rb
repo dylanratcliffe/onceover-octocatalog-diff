@@ -48,11 +48,10 @@ class Onceover
 
               logger.info('Provision common temp environment')
               # Create control repo to and from
-              environment_dir = Dir.mktmpdir('octo-diff-temp')
-              r10k_cache_dir = Dir.mktmpdir('r10k_cache_dir')
+              environment_dir = Dir.mktmpdir('octo_diff_temp')
               logger.debug "Temp directory created at #{environment_dir}"
+              r10k_cache_dir = Dir.mktmpdir('r10k_cache_temp')
               logger.debug "Temp directory created at #{r10k_cache_dir}"
-              
 
               # From dir no longer needed
               #logger.info("Provision temp environment: #{opts[:from]}")
@@ -75,7 +74,6 @@ class Onceover
               # Create r10k_cache_dir
               logger.debug 'Creating a common r10k cache'
               # Cache dir no longer needed
-              r10k_cache_dir = Dir.mktmpdir('r10k_cache')
               r10k_config = {
                 # 'cachedir' => r10k_cache_dir,
                 'cachedir' => environment_dir,
@@ -87,8 +85,6 @@ class Onceover
                 }
               }
               File.write("#{r10k_cache_dir}/r10k.yaml", r10k_config.to_yaml)
-
-              
 
               # # Copy all of the factsets over in reverse order so that
               # # local ones override vendored ones
@@ -278,16 +274,17 @@ class Onceover
                 puts "#{'Errors:'.bold}\n#{result[:stderr]}\n" if result[:exit_status] == 1
                 puts ''
               end
+
               logger.info 'Cleanup temp environment directories'
-              logger.debug "Cleanup temp from directory created at #{fromdir}"
+              logger.debug "Processing removal: #{fromdir}"
               FileUtils.rm_r(fromdir)
-              logger.debug "Cleanup temp to directory created at #{todir}"
+              logger.debug "Processing removal: #{todir}"
               FileUtils.rm_r(todir)
 
               logger.info 'Removing temporary build cache'
-              #logger.debug "Processing removal: #{r10k_cache_dir}"
-              logger.debug "Processing removal: #{environment_dir}"
+              logger.debug "Processing removal: #{r10k_cache_dir}"
               FileUtils.rm_r(r10k_cache_dir)
+              logger.debug "Processing removal: #{environment_dir}"
               FileUtils.rm_r(environment_dir)
             end
           end
