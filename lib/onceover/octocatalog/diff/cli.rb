@@ -38,6 +38,7 @@ class Onceover
               repo        = Onceover::Controlrepo.new(opts)
               test_config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
               logger.info("Compare catalogs between #{opts[:from].red} and #{opts[:to].green}")
+              logger.info("Repo Path #{repo.root}")
               num_threads = (Facter.value('processors')['count'] / 2)
               logger.debug("Available thread count: #{num_threads}")
               tests = test_config.run_filters(Onceover::Test.deduplicate(test_config.spec_tests))
