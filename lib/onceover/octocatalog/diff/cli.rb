@@ -72,7 +72,7 @@ class Onceover
               # FileUtils.copy_entry(repo.root, fromdir)
               # logger.debug "Copying controlrepo to #{todir}"
               # FileUtils.copy_entry(repo.root, todir)
-              remote_cmd = "git config remote.origin.url"
+              remote_cmd = "git config remote.origin.url | tr -d '\n'"
               Open3.popen3(remote_cmd) do |stdin, stdout, stderr, wait_thr|
                 exit_status = wait_thr.value
                 @git_remote << {
