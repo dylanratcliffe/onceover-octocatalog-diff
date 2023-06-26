@@ -141,7 +141,7 @@ class Onceover
 
               # Deploy Puppetfile in from
               logger.info "Deploying Puppetfile for #{opts[:from]} branch"
-              r10k_cmd = "r10k deploy environment #{opts[:from]} --modules -v debug --config #{r10k_cache_dir}/r10k.yaml"
+              r10k_cmd = "r10k deploy environment #{opts[:from]} --modules -v debug2 --config #{r10k_cache_dir}/r10k.yaml"
               Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
               # Open3.popen3(r10k_cmd, :chdir => fromdir) do |stdin, stdout, stderr, wait_thr|
                 exit_status = wait_thr.value
@@ -154,7 +154,7 @@ class Onceover
 
               # Deploy Puppetfile in to
               logger.info "Deploying Puppetfile for #{opts[:to]} branch"
-              r10k_cmd = "r10k deploy environment #{opts[:to]} --modules -v debug --config #{r10k_cache_dir}/r10k.yaml"
+              r10k_cmd = "r10k deploy environment #{opts[:to]} --modules -v debug2 --config #{r10k_cache_dir}/r10k.yaml"
               Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
               # Open3.popen3(r10k_cmd, :chdir => todir) do |stdin, stdout, stderr, wait_thr|
                 exit_status = wait_thr.value
