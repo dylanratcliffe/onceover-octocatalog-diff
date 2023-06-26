@@ -32,7 +32,7 @@ class Onceover
 
             run do |opts, args, cmd|
               require 'facter'
-              require 'colored'
+              require 'colored2'
 
               # TODO: Allow for custom arguments
               repo        = Onceover::Controlrepo.new(opts)
