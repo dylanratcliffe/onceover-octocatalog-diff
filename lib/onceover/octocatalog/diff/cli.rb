@@ -81,7 +81,8 @@ class Onceover
                 'sources' => {
                   'default' => {
                     'remote' => repo.root,
-                    'basedir' => environment_dir
+                    'basedir' => environment_dir,
+                    'invalid_branches' => 'correct_and_warn'
                   },
                 }
               }
