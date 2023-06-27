@@ -291,15 +291,15 @@ class Onceover
 
               logger.info 'Cleanup temp environment directories'
               logger.debug "Processing removal: #{fromdir}"
-              FileUtils.rm_r(fromdir)
+              #FileUtils.rm_r(fromdir)
               logger.debug "Processing removal: #{todir}"
-              FileUtils.rm_r(todir)
+              #FileUtils.rm_r(todir)
 
               logger.info 'Removing temporary build cache'
               logger.debug "Processing removal: #{r10k_cache_dir}"
-              FileUtils.rm_r(r10k_cache_dir)
+              #FileUtils.rm_r(r10k_cache_dir)
               logger.debug "Processing removal: #{environment_dir}"
-              FileUtils.rm_r(environment_dir)
+              #FileUtils.rm_r(environment_dir)
             end
           end
         end
