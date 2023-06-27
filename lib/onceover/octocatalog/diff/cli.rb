@@ -91,8 +91,7 @@ class Onceover
                 #'cachedir' => environment_dir,
                 'sources' => {
                   'default' => {
-                    #'remote' => repo.root,
-                    'remote' => @git_remote[0][:stdout],
+                    'remote' => repo.root,
                     'basedir' => environment_dir,
                     'invalid_branches' => 'correct_and_warn'
                   },
@@ -153,7 +152,7 @@ class Onceover
 
               # Deploy Puppetfile in from
               logger.info "Deploying Puppetfile for #{opts[:from]} branch"
-              r10k_cmd = "r10k deploy environment #{opts[:from]} --modules -v debug2 --config #{r10k_cache_dir}/r10k.yaml"
+              r10k_cmd = "r10k deploy environment #{opts[:from]} --color --trace --modules --config #{r10k_cache_dir}/r10k.yaml"
               Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
               # Open3.popen3(r10k_cmd, :chdir => fromdir) do |stdin, stdout, stderr, wait_thr|
                 exit_status = wait_thr.value
@@ -166,7 +165,7 @@ class Onceover
 
               # Deploy Puppetfile in to
               logger.info "Deploying Puppetfile for #{opts[:to]} branch"
-              r10k_cmd = "r10k deploy environment #{opts[:to]} --modules -v debug2 --config #{r10k_cache_dir}/r10k.yaml"
+              r10k_cmd = "r10k deploy environment #{opts[:to]} --color --trace --modules --config #{r10k_cache_dir}/r10k.yaml"
               Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
               # Open3.popen3(r10k_cmd, :chdir => todir) do |stdin, stdout, stderr, wait_thr|
                 exit_status = wait_thr.value
