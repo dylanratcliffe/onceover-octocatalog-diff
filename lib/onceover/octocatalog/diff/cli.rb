@@ -218,6 +218,7 @@ class Onceover
               logger.debug("Results Explained:")
               logger.debug("#{'(+)'.green} resource added or modified in `to`")
               logger.debug("#{'(-)'.red} resource removed or previous content in `from`")
+              # TODO: Determine method of different output formatters table, pretty
               @results.each do |result|
                 puts "#{'Test:'.bold} #{result[:test].classes[0].name} on #{result[:test].nodes[0].name}"
                 puts "#{'Exit:'.bold} #{result[:exit_status]}"
