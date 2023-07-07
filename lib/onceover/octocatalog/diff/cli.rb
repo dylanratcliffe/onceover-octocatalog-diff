@@ -88,57 +88,6 @@ class Onceover
               }
               File.write("#{r10k_cache_dir}/r10k.yaml", r10k_config.to_yaml)
 
-              # # Copy all of the factsets over in reverse order so that
-              # # local ones override vendored ones
-              # logger.debug 'Deploying vendored factsets'
-              # deduped_factsets = repo.facts_files.reverse.inject({}) do |hash, file|
-              #   hash[File.basename(file)] = file
-              #   hash
-              # end
-              # logger.info('Copy vendored factsets to control-repos')
-              # deduped_factsets.each do |basename, path|
-              #   facts = JSON.load(File.read(path))
-              #   # Factsets are only read from todir, see command_args (--fact-file)
-              #   # File.open("#{fromdir}/spec/factsets/#{File.basename(path,'.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
-              #   File.open("#{todir}/spec/factsets/#{File.basename(path, '.*')}.yaml", 'w') { |f| f.write facts.to_yaml }
-              # end
-
-              # Set correct branch in bootstrap dirs
-              # Not needed, pulled during r10k deploy
-              # logger.debug "Check out #{opts[:from]} branch"
-              # git_from = "git checkout #{opts[:from]}"
-              # Open3.popen3(git_from, :chdir => fromdir) do |stdin, stdout, stderr, wait_thr|
-              #   exit_status = wait_thr.value
-              #   if exit_status.exitstatus != 0
-              #     STDOUT.puts stdout.read
-              #     STDERR.puts stderr.read
-              #     abort "Git checkout branch #{opts[:from]} failed. Please verify this is a valid control-repo branch"
-              #   end
-              # end
-              # logger.debug "Check out #{opts[:to]} branch"
-              # git_to = "git checkout #{opts[:to]}"
-              # Open3.popen3(git_to, :chdir => todir) do |stdin, stdout, stderr, wait_thr|
-              #   exit_status = wait_thr.value
-              #   if exit_status.exitstatus != 0
-              #     STDOUT.puts stdout.read
-              #     STDERR.puts stderr.read
-              #     abort "Git checkout branch #{opts[:to]} failed. Please verify this is a valid control-repo branch"
-              #   end
-              # end
-
-              # Update Puppetfile for control-branch
-              # r10k seems to have issues resolving the :control_branch reference in Puppetfile.
-              # Setting control_branch to actual branch as workaround.
-              #frompuppetfile = "#{fromdir}/Puppetfile"
-              #from_content = File.read(frompuppetfile)
-              #new_content = from_content.gsub(/:control_branch/, "'#{opts[:from]}'")
-              #File.open(frompuppetfile, 'w') { |file| file.puts new_content }
-
-              #topuppetfile = "#{todir}/Puppetfile"
-              #to_content = File.read(topuppetfile)
-              #new_content = to_content.gsub(/:control_branch/, "'#{opts[:to]}'")
-              #File.open(topuppetfile, 'w') { |file| file.puts new_content }
-
               # Deploy Puppetfile in from
               logger.info "Deploying Puppetfile for #{opts[:from]} branch"
               r10k_cmd = "r10k deploy environment #{opts[:from]} --color --trace --modules --config #{r10k_cache_dir}/r10k.yaml"
