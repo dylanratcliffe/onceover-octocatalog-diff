@@ -67,11 +67,6 @@ class Onceover
               # todir = Dir.mktmpdir('control_repo')
               # logger.debug "Temp directory created at #{todir}"
 
-              # Copy no longer needed
-              # logger.debug "Copying controlrepo to #{fromdir}"
-              # FileUtils.copy_entry(repo.root, fromdir)
-              # logger.debug "Copying controlrepo to #{todir}"
-              # FileUtils.copy_entry(repo.root, todir)
                remote_cmd = "git checkout #{opts[:from]}; git checkout #{opts[:to]}" # checkout the `from` branch to ensure local repo has a reference for r10k
                Open3.popen3(remote_cmd) do |stdin, stdout, stderr, wait_thr|
                  exit_status = wait_thr.value
