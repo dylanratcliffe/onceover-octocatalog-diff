@@ -45,7 +45,7 @@ class Onceover
 
               @queue = tests.inject(Queue.new, :push)
               @results = []
-              # @git_remote = []
+              @git_remote = []
 
 
               logger.info('Provision common temp environment')
@@ -72,15 +72,15 @@ class Onceover
               # FileUtils.copy_entry(repo.root, fromdir)
               # logger.debug "Copying controlrepo to #{todir}"
               # FileUtils.copy_entry(repo.root, todir)
-              # remote_cmd = "git checkout remote.origin.url | tr -d '\n'"
-              # Open3.popen3(remote_cmd) do |stdin, stdout, stderr, wait_thr|
-              #   exit_status = wait_thr.value
-              #   @git_remote << {
-              #     stdout: stdout.read,
-              #     stderr: stderr.read,
-              #     exit_status: exit_status.exitstatus,
-              #   }
-              # end
+               remote_cmd = "git checkout #{opts[:from]}; git checkout #{opts[:to]}" # checkout the `from` branch to ensure local repo has a reference for r10k
+               Open3.popen3(remote_cmd) do |stdin, stdout, stderr, wait_thr|
+                 exit_status = wait_thr.value
+                 @git_remote << {
+                   stdout: stdout.read,
+                   stderr: stderr.read,
+                   exit_status: exit_status.exitstatus,
+                 }
+               end
 
 
               # Create r10k_cache_dir
