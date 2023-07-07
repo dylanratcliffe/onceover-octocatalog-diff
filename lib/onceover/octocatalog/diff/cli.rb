@@ -27,6 +27,7 @@ class Onceover
             DESCRIPTION
 
             flag nil, :display_source, 'Display the source class filename and line number for diffs'
+            flag nil, :color, 'Display logs in color (default false)'
             option :f,  :from, 'Branch to compare from', argument: :required
             option :t,  :to,   'Branch to compare to', argument: :required
 
@@ -173,7 +174,7 @@ class Onceover
                     
                     # flag: Whether the output should show the source file and fileline of the resource update.
                     display_source = opts[:display_source] ? '--display-source' : '--no-display-source'
-
+                    color = opts[:colors] ? '--color' : '--no-color'
                     command_args = [
                       '--fact-file',
                       "#{todir}/spec/factsets/#{test.nodes[0].name}.yaml",
@@ -183,6 +184,7 @@ class Onceover
                       todir,
                       '--puppet-binary',
                       binary,
+                      color,
                       '--hiera-config',
                       repo.hiera_config_file,
                       '--pass-env-vars',
