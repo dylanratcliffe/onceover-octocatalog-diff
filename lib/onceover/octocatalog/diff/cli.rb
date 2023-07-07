@@ -27,7 +27,7 @@ class Onceover
             DESCRIPTION
 
             flag nil, :display_source, 'Display the source class filename and line number for diffs'
-            flag nil, :color, 'Display logs in color (default false)'
+            flag nil, :no_color, 'Disable color for octocatalog-diff output'
             option :f,  :from, 'Branch to compare from', argument: :required
             option :t,  :to,   'Branch to compare to', argument: :required
 
@@ -38,7 +38,7 @@ class Onceover
               # TODO: Allow for custom arguments
               repo        = Onceover::Controlrepo.new(opts)
               test_config = Onceover::TestConfig.new(repo.onceover_yaml, opts)
-              logger.info("Compare catalogs between #{opts[:from].red} and #{opts[:to].green}")
+              logger.info("Compare catalogs between #{opts[:from]} and #{opts[:to]}")
               logger.info("Repo Path #{repo.root}")
               num_threads = (Facter.value('processors')['count'] / 2)
               logger.debug("Available thread count: #{num_threads}")
@@ -174,7 +174,7 @@ class Onceover
                     
                     # flag: Whether the output should show the source file and fileline of the resource update.
                     display_source = opts[:display_source] ? '--display-source' : '--no-display-source'
-                    color = opts[:colors] ? '--color' : '--no-color'
+                    color = opts[:no_color] ? '--no-color' : '--color'
                     command_args = [
                       '--fact-file',
                       "#{todir}/spec/factsets/#{test.nodes[0].name}.yaml",
@@ -214,7 +214,7 @@ class Onceover
               end
 
               @threads.each(&:join)
-              logger.info("#{'Test Results:'.bold} #{"#{opts[:from]} (-)".red} vs #{"#{opts[:to]} (+)".green}")
+              logger.info("Test Results: #{opts[:from]} (-) vs #{opts[:to]} (+)")
               logger.debug("Results Explained:")
               logger.debug("#{'(+)'.green} resource added or modified in `to`")
               logger.debug("#{'(-)'.red} resource removed or previous content in `from`")
