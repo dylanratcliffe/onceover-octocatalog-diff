@@ -44,9 +44,8 @@ class Onceover
               tests = test_config.run_filters(Onceover::Test.deduplicate(test_config.spec_tests))
 
               @queue = tests.inject(Queue.new, :push)
-              @results = []
-              @git_remote = []
-
+              @results = []    # collect octocatalog-diff output from each thread
+              @git_remote = [] # collect git checkout output
 
               logger.info('Provision temp working directories')
               environment_dir = Dir.mktmpdir('octo_diff_temp')
@@ -63,6 +62,9 @@ class Onceover
               todir = "#{environment_dir}/#{opts[:to]}"
               logger.debug "Temp #{opts[:to]} directory created at #{todir}"
 
+              # TODO: Confirm if there is a better way to update git /ref/heads for repo.root to discover commit for `to` and `from`
+              # If either the `to` or `from` reference hasn't been checked out locally, r10k will fail to discover/deploy it.
+              # A simple git checkout for the `to` and `from` branch ensures the local repo is aware of /ref/heads and r10k can use them successfully.  
                remote_cmd = "git checkout #{opts[:from]}; git checkout #{opts[:to]}" # checkout the `from` branch to ensure local repo has a reference for r10k
                Open3.popen3(remote_cmd) do |stdin, stdout, stderr, wait_thr|
                  exit_status = wait_thr.value
@@ -72,7 +74,6 @@ class Onceover
                    exit_status: exit_status.exitstatus,
                  }
                end
-
 
               # Create r10k_cache_dir
               logger.debug 'Creating a common r10k cache'
@@ -88,7 +89,7 @@ class Onceover
               }
               File.write("#{r10k_cache_dir}/r10k.yaml", r10k_config.to_yaml)
 
-              # Deploy Puppetfile in from
+              # Deploy environment in `from` temp environment
               logger.info "Deploying Puppetfile for #{opts[:from]} branch"
               r10k_cmd = "r10k deploy environment #{opts[:from]} --color --trace --modules --config #{r10k_cache_dir}/r10k.yaml"
               Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
@@ -101,7 +102,7 @@ class Onceover
                 end
               end
 
-              # Deploy Puppetfile in to
+              # Deploy environment in `to` temp environment
               logger.info "Deploying Puppetfile for #{opts[:to]} branch"
               r10k_cmd = "r10k deploy environment #{opts[:to]} --color --trace --modules --config #{r10k_cache_dir}/r10k.yaml"
               Open3.popen3(r10k_cmd) do |stdin, stdout, stderr, wait_thr|
@@ -114,7 +115,6 @@ class Onceover
                 end
               end
 
-              # Move beneath deploy of environments
               # Copy all of the factsets over in reverse order so that
               # local ones override vendored ones
               logger.debug 'Deploying vendored factsets'
@@ -170,7 +170,8 @@ class Onceover
 
                     command_prefix = ENV['BUNDLE_GEMFILE'] ? 'bundle exec ' : ''
                     bootstrap_env = "--bootstrap-environment GEM_HOME=#{ENV['GEM_HOME']}" if ENV['GEM_HOME']
-                    # Whether the output should show the source file and fileline of the update.
+                    
+                    # flag: Whether the output should show the source file and fileline of the resource update.
                     display_source = opts[:display_source] ? '--display-source' : '--no-display-source'
 
                     command_args = [
