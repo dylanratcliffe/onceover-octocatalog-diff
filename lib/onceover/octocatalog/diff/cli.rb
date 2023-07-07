@@ -48,24 +48,20 @@ class Onceover
               @git_remote = []
 
 
-              logger.info('Provision common temp environment')
-              # Create control repo to and from
+              logger.info('Provision temp working directories')
               environment_dir = Dir.mktmpdir('octo_diff_temp')
-              logger.debug "Temp directory created at #{environment_dir}"
+              logger.debug "Temp environment directory created at #{environment_dir}"
               r10k_cache_dir = Dir.mktmpdir('r10k_cache_temp')
-              logger.debug "Temp directory created at #{r10k_cache_dir}"
+              logger.debug "Temp r10k cache directory created at #{r10k_cache_dir}"
 
-              # From dir no longer needed
-              #logger.info("Provision temp environment: #{opts[:from]}")
               # Create control repo to and from
+              logger.debug("Provision temp environment: #{opts[:from]}")
               fromdir = "#{environment_dir}/#{opts[:from]}"
-              #logger.debug "Temp directory created at #{fromdir}"
+              logger.debug "Temp #{opts[:from]} directory created at #{fromdir}"
 
-              # To dir no longer needed
-              # logger.info("Provision temp environment: #{opts[:to]}")
+              logger.debug("Provision temp environment: #{opts[:to]}")
               todir = "#{environment_dir}/#{opts[:to]}"
-              # todir = Dir.mktmpdir('control_repo')
-              # logger.debug "Temp directory created at #{todir}"
+              logger.debug "Temp #{opts[:to]} directory created at #{todir}"
 
                remote_cmd = "git checkout #{opts[:from]}; git checkout #{opts[:to]}" # checkout the `from` branch to ensure local repo has a reference for r10k
                Open3.popen3(remote_cmd) do |stdin, stdout, stderr, wait_thr|
@@ -80,7 +76,6 @@ class Onceover
 
               # Create r10k_cache_dir
               logger.debug 'Creating a common r10k cache'
-              # Cache dir no longer needed
               r10k_config = {
                 'cachedir' => r10k_cache_dir,
                 'sources' => {
