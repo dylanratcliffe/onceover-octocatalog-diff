@@ -26,6 +26,7 @@ class Onceover
               #{'onceover diff -f development -t main'.bold}
             DESCRIPTION
 
+            flag nil, :display_detail_add, 'Display the detailed attributes for added resources'
             flag nil, :display_source, 'Display the source class filename and line number for diffs'
             flag nil, :no_color, 'Disable color for octocatalog-diff output'
             option :f,  :from, 'Branch to compare from', argument: :required
@@ -173,6 +174,7 @@ class Onceover
                     bootstrap_env = "--bootstrap-environment GEM_HOME=#{ENV['GEM_HOME']}" if ENV['GEM_HOME']
                     
                     # flag: Whether the output should show the source file and fileline of the resource update.
+                    display_detail_add = opts[:display_detail_add] ? '--display-detail-add' : '--no-display-detail-add'
                     display_source = opts[:display_source] ? '--display-source' : '--no-display-source'
                     color = opts[:no_color] ? '--no-color' : '--color'
                     command_args = [
@@ -190,6 +192,7 @@ class Onceover
                       '--pass-env-vars',
                       ENV.keys.keep_if { |k| k =~ /^RUBY|^BUNDLE|^PUPPET/ }.join(','),
                       bootstrap_env,
+                      display_detail_add,
                       display_source,
                       '--enc',
                       "#{todir}/scripts/#{test.nodes[0].name}-#{safe_class}.sh",
