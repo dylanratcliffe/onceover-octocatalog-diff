@@ -205,7 +205,7 @@ class Onceover
                         stdout: stdout.read,
                         stderr: stderr.read,
                         exit_status: exit_status.exitstatus,
-                        test: test
+                        test: {class: test.classes[0].name, node: test.nodes[0].name}
                       }
                     end
                     logger.debug "Storing results for #{test.classes[0].name} on #{test.nodes[0].name}"
@@ -220,14 +220,25 @@ class Onceover
               logger.debug("#{'(-)'.red} resource removed or previous content in `from`")
               # TODO: Determine method of different output formatters table, pretty
               @results.each do |result|
-                puts "#{'Test:'.bold} #{result[:test].classes[0].name} on #{result[:test].nodes[0].name}"
-                puts "#{'Exit:'.bold} #{result[:exit_status]}"
-                puts "#{'Status:'.bold} #{'changes'.yellow}" if result[:exit_status] == 2
-                puts "#{'Status:'.bold} #{'no differences'.green}" if result[:exit_status] == 0
-                puts "#{'Status:'.bold} #{'failed'.red}" if result[:exit_status] == 1
-                puts "#{'Results:'.bold}\n#{result[:stdout]}\n" if result[:exit_status] == 2
-                puts "#{'Errors:'.bold}\n#{result[:stderr]}\n" if result[:exit_status] == 1
-                puts ''
+                if opts[:no_color]
+                  puts "#{'Test:'} #{result[:test][:class]} on #{result[:test][:node]}"
+                  puts "#{'Exit:'} #{result[:exit_status]}"
+                  puts "#{'Status:'} #{'changes'}" if result[:exit_status] == 2
+                  puts "#{'Status:'} #{'no differences'}" if result[:exit_status] == 0
+                  puts "#{'Status:'} #{'failed'}" if result[:exit_status] == 1
+                  puts "#{'Results:'}\n#{result[:stdout]}\n" if result[:exit_status] == 2
+                  puts "#{'Errors:'}\n#{result[:stderr]}\n" if result[:exit_status] == 1
+                  puts ''
+                else
+                  puts "#{'Test:'.bold} #{result[:test][:class]} on #{result[:test][:node]}"
+                  puts "#{'Exit:'.bold} #{result[:exit_status]}"
+                  puts "#{'Status:'.bold} #{'changes'.yellow}" if result[:exit_status] == 2
+                  puts "#{'Status:'.bold} #{'no differences'.green}" if result[:exit_status] == 0
+                  puts "#{'Status:'.bold} #{'failed'.red}" if result[:exit_status] == 1
+                  puts "#{'Results:'.bold}\n#{result[:stdout]}\n" if result[:exit_status] == 2
+                  puts "#{'Errors:'.bold}\n#{result[:stderr]}\n" if result[:exit_status] == 1
+                  puts ''
+                end
               end
 
               logger.info 'Cleanup temp environment directories'
