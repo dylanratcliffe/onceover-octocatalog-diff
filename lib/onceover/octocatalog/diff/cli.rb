@@ -246,7 +246,8 @@ class Onceover
               end
 
               def print_summary_table
-                @results.sort_by { |result| [result[:test][:node]] }
+                # Sort does nothing presently. 
+                # @results.sort_by { |result| [result[:exit_status]] }
                 require 'table_print'
                 states = { 0 => 'no differences', 1 => 'failed', 2 => 'changes' }
 
