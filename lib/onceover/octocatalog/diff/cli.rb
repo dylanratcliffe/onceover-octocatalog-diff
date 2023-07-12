@@ -252,17 +252,16 @@ class Onceover
 
                 tp.set :max_width, 200
                 tp @results, 
-                { state: lambda { |result| states[result[:exit_status]]} }, 
-                { add: lambda { |result| result[:stdout].scan(/\+ /).length} }, 
-                { remove: lambda { |result| result[:stdout].scan(/- /).length} }, 
+                { node: lambda { |result| result[:test][:node]} }, 
                 { class: lambda { |result| result[:test][:class]} }, 
-                { name: lambda { |result| result[:test][:node]} } 
+                { status: lambda { |result| states[result[:exit_status]]} }, 
+                { add: lambda { |result| result[:stdout].scan(/\+ /).length} }, 
+                { remove: lambda { |result| result[:stdout].scan(/- /).length} } 
                 puts ''
               end
              
               print_summary_table
               
-
               logger.info 'Cleanup temp environment directories'
               logger.debug "Processing removal: #{fromdir}"
               #FileUtils.rm_r(fromdir)
