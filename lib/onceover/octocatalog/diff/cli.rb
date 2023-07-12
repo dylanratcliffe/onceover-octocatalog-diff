@@ -252,11 +252,11 @@ class Onceover
 
                 tp.set :max_width, 200
                 tp @results, 
-                  { state: lambda { |result| states[result[:exit_status]]} }, 
-                  { add: lambda { |result| result[:stdout].scan(/\+ /).length} }, 
-                  { remove: lambda { |result| result[:stdout].scan(/- /).length} },
-                  { name: lambda { |result| result[:test][:node]} }, 
-                  { class: lambda { |result| result[:test][:class]} }, 
+                { state: lambda { |result| states[result[:exit_status]]} }, 
+                { add: lambda { |result| result[:stdout].scan(/\+ /).length} }, 
+                { remove: lambda { |result| result[:stdout].scan(/- /).length} }, 
+                { class: lambda { |result| result[:test][:class]} }, 
+                { name: lambda { |result| result[:test][:node]} } 
                 puts ''
               end
              
