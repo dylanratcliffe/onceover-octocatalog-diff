@@ -245,14 +245,12 @@ class Onceover
                 end
               end
 
-              def print_summary_table
-                # Sort does nothing presently. 
-                # @results.sort_by { |result| [result[:exit_status]] }
+              def print_summary_table              
                 require 'table_print'
                 states = { 0 => 'no diff', 1 => 'failed', 2 => 'changes' }
 
-                tp.set :max_width, 200
-                tp @results, 
+                tp.set :max_width, 200 # override default 30 character limit
+                tp @results.sort_by { |result| [result[:test][:class],[result[:test][:node]]] }, 
                 { class: lambda { |result| result[:test][:class]} }, 
                 { node: lambda { |result| result[:test][:node]} },
                 { status: lambda { |result| states[result[:exit_status]]} }, 
