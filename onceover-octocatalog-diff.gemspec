@@ -26,4 +26,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'octocatalog-diff', '~> 2.1'
   spec.add_runtime_dependency 'onceover', '>= 3.20.0'
   spec.add_runtime_dependency 'table_print', '>= 1.5.7'
+  spec.add_runtime_dependency 'colored2', '~> 3.1'
 end
