@@ -249,7 +249,7 @@ class Onceover
                 # Sort does nothing presently. 
                 # @results.sort_by { |result| [result[:exit_status]] }
                 require 'table_print'
-                states = { 0 => 'no differences', 1 => 'failed', 2 => 'changes' }
+                states = { 0 => 'no diff', 1 => 'failed', 2 => 'changes' }
 
                 tp.set :max_width, 200
                 tp @results, 
